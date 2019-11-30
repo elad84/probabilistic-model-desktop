@@ -1,25 +1,20 @@
 // @flow
-import React, {Component} from 'react';
-import {Link} from 'react-router-dom';
-import styles from './Home.css';
-import MainGraph from "./MainGraph";
-import NavigationBar from "./NavigationBar";
-import {remote} from "electron";
-import {Route} from "react-router";
-
+import React, { Component } from 'react';
+import { remote } from 'electron';
+import MainGraph from './MainGraph';
+import NavigationBar from './NavigationBar';
 
 const graphStyle = {
-  height: "400px",
-  border: "1px solid gray"
+  height: '400px',
+  border: '1px solid gray'
 };
 
-const dialogOptions = {
-  type: 'info',
-  title: 'Root Folder',
-  message: "Please choose a root folder for your project",
-  buttons: ['Ok']
-};
-
+// const dialogOptions = {
+//   type: 'info',
+//   title: 'Root Folder',
+//   message: "Please choose a root folder for your project",
+//   buttons: ['Ok']
+// };
 
 type Props = {
   folderPath: string,
@@ -30,24 +25,26 @@ export default class Home extends Component<Props> {
   props: Props;
 
   loadNetwork(history) {
-    const {folderPath} = this.props;
-    remote.dialog
-      .showOpenDialog({
+    const { folderPath } = this.props;
+    remote.dialog.showOpenDialog(
+      {
         properties: ['openFile'],
-        defaultPath: folderPath,
-      }, (result) => {
-        if(!result) {
+        defaultPath: folderPath
+      },
+      result => {
+        if (!result) {
           return;
         }
-        const {loadNetwork: loadNetwork1} = this.props;
+        const { loadNetwork: loadNetwork1 } = this.props;
         loadNetwork1(result[0], history);
-      });
+      }
+    );
   }
 
   render() {
     return (
-      <div className={styles.container} data-tid="container">
-        <NavigationBar loadNetwork={this.loadNetwork.bind(this)}/>
+      <div>
+        <NavigationBar loadNetwork={this.loadNetwork.bind(this)} />
         {/* <div className={styles.centerContainer}><h2>Home</h2></div> */}
         {/* <Link to="/create"> */}
         {/*  <div className="btn btn-primary btn-lg" role="button">Create New Graph</div> */}
@@ -64,7 +61,9 @@ export default class Home extends Component<Props> {
         {/* <Route render = {({history}) => ( */}
         {/*  <RaisedButton label="Load example 1" onClick={ () => {this.props.loadNetwork('example1.txt', history)}} /> */}
         {/* )}/> */}
-        <div style={graphStyle} className="graph"><MainGraph/></div>
+        <div style={graphStyle} className="graph">
+          <MainGraph />
+        </div>
       </div>
     );
   }

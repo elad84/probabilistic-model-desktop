@@ -1,22 +1,35 @@
-import React, {Component} from "react";
-import {connect} from "react-redux";
-import {RaisedButton} from "material-ui";
-import {bindActionCreators} from "redux";
-import {checkDependency, handleRootChosen, resetDependencyGraph, setObserved} from "../actions/dependencyGraph";
-import DependencyGraphComponent from "../components/unit1/DependencyGraph";
-import ConnectedObservedDialog from "../components/unit1/ObservedDialog";
-import {Redirect} from "react-router";
-
+import React, { Component } from 'react';
+import { Redirect } from 'react-router';
+import { connect } from 'react-redux';
+import { RaisedButton } from 'material-ui';
+import { bindActionCreators } from 'redux';
+import {
+  checkDependency,
+  handleRootChosen,
+  resetDependencyGraph,
+  setObserved
+} from '../actions/dependencyGraph';
+import DependencyGraphComponent from '../components/unit1/DependencyGraph';
+import ConnectedObservedDialog from '../components/unit1/ObservedDialog';
 
 const style = {
   margin: 12
 };
 const graphStyle = {
-  height: "400px",
-  border: "1px solid gray"
+  height: '400px',
+  border: '1px solid gray'
 };
 
-const mapDispatchToProps = dispatch => bindActionCreators({checkDependency, chooseAllObserved: setObserved, resetDependencyGraph, handleRootChosen}, dispatch);
+const mapDispatchToProps = dispatch =>
+  bindActionCreators(
+    {
+      checkDependency,
+      chooseAllObserved: setObserved,
+      resetDependencyGraph,
+      handleRootChosen
+    },
+    dispatch
+  );
 
 function mapStateToProps(state) {
   return {
@@ -44,41 +57,42 @@ type Props = {
 };
 
 class Unit1Container extends Component<Props> {
-
   state = {
     chosenNode: null,
     observedNodes: [],
     dialogOpen: false,
-    runGuide : false,
+    // runGuide : false,
     // eslint-disable-next-line react/no-unused-state
-    stepIndex : 0,
-    steps : [
+    stepIndex: 0,
+    steps: [
       {
         target: '.graph',
-        content: 'Please click on "Estimation" so it will be chosen as root node',
-        disableBeacon : true,
-        spotlightClicks : true
+        content:
+          'Please click on "Estimation" so it will be chosen as root node',
+        disableBeacon: true,
+        spotlightClicks: true
       },
       {
         target: '.choose-observed',
         content: 'Choose the observed node "Project Release"',
-        disableBeacon : true,
-        spotlightClicks : true
+        disableBeacon: true,
+        spotlightClicks: true
       },
       {
         target: '.check-dependency',
-        content: 'Click this button when you are ready to see which nodes are depended or independent from "Estimation" given that "Project Release" is observed',
-        disableBeacon : true,
-        spotlightClicks : true
+        content:
+          'Click this button when you are ready to see which nodes are depended or independent from "Estimation" given that "Project Release" is observed',
+        disableBeacon: true,
+        spotlightClicks: true
       }
     ]
   };
 
   componentDidMount() {
-    const {networkName} = this.props;
-    if(networkName === 'example1.txt') {
+    const { networkName } = this.props;
+    if (networkName === 'example1.txt') {
       this.setState({
-        runGuide: true
+        // runGuide: true
       });
     }
   }
@@ -89,12 +103,12 @@ class Unit1Container extends Component<Props> {
         // eslint-disable-next-line react/no-unused-state
         stepIndex: event.index
       });
-      const {steps: steps1} = this.state;
+      const { steps: steps1 } = this.state;
       const steps = Array.from(steps1);
       steps.push({
         target: '.graph',
         content: 'Now you can see that',
-        disableBeacon : true
+        disableBeacon: true
       });
       this.setState({
         steps
@@ -102,24 +116,24 @@ class Unit1Container extends Component<Props> {
       // Do your sync things, at the end of which do another setState to turn `runGuide` back to `true`
     } else if (event.type === 'step:after') {
       // eslint-disable-next-line react/no-unused-state
-      this.setState({stepIndex: event.index});
+      this.setState({ stepIndex: event.index });
     }
   }
 
   // observed dialog functions
   setObserved(observedNodes) {
     this.setState({
-      observedNodes,
-      runGuide : true
+      observedNodes
+      // runGuide : true
     });
 
-    const {chooseAllObserved} = this.props;
+    const { chooseAllObserved } = this.props;
     chooseAllObserved(observedNodes);
   }
 
   reset() {
     // eslint-disable-next-line no-shadow
-    const {resetDependencyGraph} = this.props;
+    const { resetDependencyGraph } = this.props;
     this.setState({
       observedNodes: []
     });
@@ -128,16 +142,14 @@ class Unit1Container extends Component<Props> {
   }
 
   closeDialog() {
-    this.setState({dialogOpen: false});
+    this.setState({ dialogOpen: false });
   }
 
   chooseObserved() {
     this.setState({
-      dialogOpen: true,
-      runGuide : false
+      dialogOpen: true
+      // runGuide : false
     });
-
-
   }
 
   handleNodeChosen(node) {
@@ -145,43 +157,104 @@ class Unit1Container extends Component<Props> {
     this.setState({
       chosenNode
     });
-    const {handleRootChosen} = this.props;
+    const { observedNodes } = this.state;
+    // eslint-disable-next-line no-shadow
+    const {
+      handleRootChosen,
+      networkName,
+      nodes,
+      networkType,
+      checkDependency: checkDependency1,
+      nodesMap,
+      layersCount,
+      graph
+    } = this.props;
     handleRootChosen(chosenNode);
+    checkDependency1(
+      chosenNode,
+      observedNodes,
+      graph,
+      nodes,
+      nodesMap,
+      networkName,
+      networkType,
+      layersCount
+    );
   }
 
   render() {
-    const {runGuide, chosenNode, dialogOpen, observedNodes} = this.state;
-    const {networkName, nodes, networkType, checkDependency: checkDependency1, nodesMap, layersCount, graph} = this.props;
-    if(!graph) {
-      return <Redirect to='/'/>;
+    const { chosenNode, dialogOpen, observedNodes } = this.state;
+    const { graph } = this.props;
+    if (!graph) {
+      return <Redirect to="/" />;
     }
 
     const qualifiedObserved = Array.from(graph.nodes);
-    if(chosenNode) {
-      for(let i = 0; i < qualifiedObserved.length; i++) {
-        if(qualifiedObserved[i].id === chosenNode) {
+    if (chosenNode) {
+      // eslint-disable-next-line no-plusplus
+      for (let i = 0; i < qualifiedObserved.length; i++) {
+        if (qualifiedObserved[i].id === chosenNode) {
           qualifiedObserved.splice(i, 1);
           break;
         }
       }
     }
     return (
-      <div style={{width: '100%'}}>
-        {/* <ReactJoyride steps={steps} continuous run={runGuide} callback={this.handleJoyrideCallback.bind(this)} /> */}
-        <ConnectedObservedDialog closeCallback={this.closeDialog.bind(this)} open={dialogOpen}
-                                 nodesList={qualifiedObserved}
-                                 setObserved={this.setObserved.bind(this)}/>
-        <RaisedButton className="choose-observed" label="Choose Observed Node" style={style} onClick={this.chooseObserved.bind(this)}/>
-        <RaisedButton className="check-dependency" label="Check Dependency" style={style}
-                      onClick={() => checkDependency1(chosenNode, observedNodes,
-                        graph, nodes, nodesMap, networkName, networkType, layersCount)}/>
-        <RaisedButton className="reset" label="Reset Network" style={style}
-                      onClick={() => this.reset()}/>
-        <div style={graphStyle} className="graph"><DependencyGraphComponent handleNode={this.handleNodeChosen.bind(this)}/></div>
+      <div style={{ width: '100%' }}>
+        <ConnectedObservedDialog
+          closeCallback={this.closeDialog.bind(this)}
+          open={dialogOpen}
+          nodesList={qualifiedObserved}
+          observedNodes={observedNodes}
+          setObserved={this.setObserved.bind(this)}
+        />
+        <div className="dependency-explanation">
+          Please set a set of observed nodes and then click on non observed node
+          to find which nodes are conditional independent from chosen node. On
+          every click on node the conditional dependency will be recalculated.
+          <br />
+          Root node is highlighted in{' '}
+          <span style={{ color: '#32a84a' }}>green</span>
+          <br />
+          Observed nodes is highlighted in{' '}
+          <span style={{ color: '#a9a9a9' }}>gray</span>
+          <br />
+          Nodes that are conditional dependent in root node will be highlighted
+          in <span style={{ color: '#00FF00' }}>light green</span>
+        </div>
+        <div className="dependency-buttons">
+          <div className="observed-wrapper">
+            <RaisedButton
+              className="choose-observed"
+              label="Choose Observed Node"
+              style={style}
+              onClick={this.chooseObserved.bind(this)}
+            />
+            <div className="observed-counter">({observedNodes.length})</div>
+          </div>
+
+          {/* <RaisedButton className="check-dependency" label="Check Dependency" style={style} */}
+          {/*              onClick={() => checkDependency1(chosenNode, observedNodes, */}
+          {/*                graph, nodes, nodesMap, networkName, networkType, layersCount)}/> */}
+          <RaisedButton
+            className="reset"
+            label="Reset Network"
+            style={style}
+            onClick={() => this.reset()}
+          />
+        </div>
+        <div style={graphStyle} className="graph">
+          <DependencyGraphComponent
+            handleNode={this.handleNodeChosen.bind(this)}
+          />
+        </div>
       </div>
     );
   }
 }
 
-const Unit1ContainerObj = connect(mapStateToProps, mapDispatchToProps)(Unit1Container);
+const Unit1ContainerObj = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Unit1Container);
 export default Unit1ContainerObj;

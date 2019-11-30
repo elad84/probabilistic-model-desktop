@@ -1,61 +1,69 @@
-import React, {Component} from 'react';
-import {Dialog, FlatButton, MenuItem, SelectField} from "material-ui";
-import {connect} from "react-redux";
+import React, { Component } from 'react';
+import { Dialog, FlatButton, MenuItem, SelectField } from 'material-ui';
 
-const style = {
-  margin: 12
+type Props = {
+  setObserved: Function,
+  closeCallback: Function,
+  open: boolean,
+  nodesList: Array,
+  observedNodes: Array
 };
 
-class ConnectedObservedDialog extends Component {
-
-  state = {
-    observedNodes : []
-  };
-
+class ConnectedObservedDialog extends Component<Props> {
   handleChangeParents(event, index, values) {
-    this.setState({
-      observedNodes : values
-    });
+    const { setObserved } = this.props;
+    setObserved(values);
   }
 
-  handleClose(){
-    this.props.closeCallback();
+  handleClose() {
+    const { closeCallback } = this.props;
+    closeCallback();
   }
 
   setObserved() {
-    this.props.setObserved(this.state.observedNodes);
+    // this.props.setObserved(this.state.observedNodes);
     this.handleClose();
   }
 
   handleFullClose() {
     this.setState({
-      open : undefined
-    })
+      // open : undefined
+    });
   }
 
   render() {
+    const {
+      closeCallback,
+      open: openState,
+      nodesList: parents,
+      observedNodes
+    } = this.props;
 
     const actions = [
-      <FlatButton
-        label="Cancel"
-        primary={true}
-        onClick={this.props.closeCallback}
-      />,
+      <FlatButton label="Cancel" primary onClick={closeCallback} />,
       <FlatButton
         label="Set Observed"
-        primary={true}
-        keyboardFocused={true}
+        primary
+        keyboardFocused
         onClick={this.setObserved.bind(this)}
       />
     ];
 
-    const openState = this.props.open,
-      parents = this.props.nodesList;
+    // const openState = this.props.open,
+    //   parents = this.props.nodesList;
 
     const parentList = [];
-    parentList.push(<MenuItem key="null1" value={null} primaryText=""/>);
+    parentList.push(<MenuItem key="null1" value={null} primaryText="" />);
+    // eslint-disable-next-line no-plusplus
     for (let i = 0; i < parents.length; i++) {
-      parentList.push(<MenuItem key={parents[i].id} value={parents[i].id} primaryText={parents[i].label}  insetChildren={true}/>)
+      parentList.push(
+        <MenuItem
+          key={parents[i].id}
+          value={parents[i].id}
+          primaryText={parents[i].label}
+          insetChildren
+        />
+      );
     }
     return (
       <Dialog
@@ -63,15 +71,16 @@ class ConnectedObservedDialog extends Component {
         actions={actions}
         modal={false}
         open={openState}
-        onRequestClose={this.handleFullClose.bind(this)}>
-
+        onRequestClose={this.handleFullClose.bind(this)}
+      >
         <div>
           <SelectField
             floatingLabelText="Choose Observed"
             id="1"
-            value={this.state.observedNodes}
-            multiple={true}
-            onChange={this.handleChangeParents.bind(this)}>
+            value={observedNodes}
+            multiple
+            onChange={this.handleChangeParents.bind(this)}
+          >
             {parentList}
           </SelectField>
         </div>

@@ -1,14 +1,26 @@
 // @flow
-import axios from "axios";
-import type {Action} from './types';
-import {toBayesianNetwork} from "./graph";
-import {ADD_CONTROL_NODE, ADD_NODE, CREATE_GRAPH, DELETE_NODE, SAVE_GRAPH, SET_DETAILS} from "../actions/EditNetwork";
-import {LOAD_NETWORK} from "../actions/graph";
-import {CHOOSE_OBSERVED, DEPENDENCY_RESPONSE, RESET_GRAPH, ROOT_CHOSEN, TO_MORALIZED} from "../actions/dependencyGraph";
-import {ELIMINATE_NODE, ELIMINATE_PERFECT} from "../actions/eliminationGraph";
-import {isBlank, isNotBlank} from "../utils/Util";
-import {isNotEmptyArr} from "../utils/ArrayUtils";
-
+import axios from 'axios';
+import type { Action } from './types';
+import { toBayesianNetwork } from './graph';
+import {
+  ADD_CONTROL_NODE,
+  ADD_NODE,
+  CREATE_GRAPH,
+  DELETE_NODE,
+  SAVE_GRAPH,
+  SET_DETAILS
+} from '../actions/EditNetwork';
+import { LOAD_NETWORK } from '../actions/graph';
+import {
+  CHOOSE_OBSERVED,
+  DEPENDENCY_RESPONSE,
+  RESET_GRAPH,
+  ROOT_CHOSEN,
+  TO_MORALIZED
+} from '../actions/dependencyGraph';
+import { ELIMINATE_NODE, ELIMINATE_PERFECT } from '../actions/eliminationGraph';
+import { isBlank, isNotBlank } from '../utils/Util';
+import { isNotEmptyArr } from '../utils/ArrayUtils';
 
 const initialState = {
   graph: {
@@ -45,11 +57,16 @@ function validateNode(node) {
   }
 
   return invalidFields;
-
 }
 
-
-function getNode(existingData, id, label, isControl = false, level = 1, color = '#41e0c9') {
+function getNode(
+  existingData,
+  id,
+  label,
+  isControl = false,
+  level = 1,
+  color = '#41e0c9'
+) {
   const node = {};
   if (existingData) {
     // Object.assign(node, existingData);
@@ -64,18 +81,17 @@ function getNode(existingData, id, label, isControl = false, level = 1, color = 
     node.reachableNodes = [];
   } else {
     const displayName = label || `Node${id}`;
-    Object.assign(node,
-      {
-        id,
-        label: displayName,
-        color,
-        parents: [],
-        controlNode: isControl,
-        displayName,
-        domain: [],
-        level,
-        reachableNodes: []
-      });
+    Object.assign(node, {
+      id: `${id}`,
+      label: displayName,
+      color,
+      parents: [],
+      controlNode: isControl,
+      displayName,
+      domain: [],
+      level,
+      reachableNodes: []
+    });
   }
 
   const errors = validateNode(node);
@@ -88,30 +104,31 @@ function getNode(existingData, id, label, isControl = false, level = 1, color = 
 
 function resetGraph(action, state) {
   if (action.payload === 1) {
-    return Object.assign(state, {dependencyGraph: state.graph});
+    return Object.assign(state, { dependencyGraph: state.graph });
   }
   if (action.payload === 2) {
-    return Object.assign(state, {moralizeGraph: state.graph});
+    return Object.assign(state, { moralizeGraph: state.graph });
   }
 
   if (action.payload === 3) {
-    return Object.assign(state, {eliminationGraph: state.graph});
+    return Object.assign(state, { eliminationGraph: state.graph });
   }
   return state;
 }
 
 function dependencyRootChosen(state, action) {
   const nextState = Object.assign({}, state);
-  const {dependencyGraph} = state;
+  const { dependencyGraph } = state;
   const nodes = Array.from(dependencyGraph.nodes);
   let chosenNode;
   let node;
+  // eslint-disable-next-line no-plusplus
   for (let i = 0; i < nodes.length; i++) {
     node = nodes[i];
     if (node.id === action.payload) {
       chosenNode = Object.assign({}, node);
       // eslint-disable-next-line no-param-reassign
-      chosenNode.color = '#004d26';
+      chosenNode.color = '#32a84a';
       nodes.splice(i, 1, chosenNode);
     } else if (node.color === '#004d26') {
       node = Object.assign({}, node);
@@ -141,10 +158,11 @@ function dependencyObservedChosen(state, action) {
   const nextState = Object.assign({}, state);
 
   // get nodes
-  const {dependencyGraph} = state;
+  const { dependencyGraph } = state;
   const nodes = Array.from(dependencyGraph.nodes);
   const observed = action.payload;
   let node;
+  // eslint-disable-next-line no-plusplus
   for (let i = 0; i < nodes.length; i++) {
     node = nodes[i];
     if (observed.indexOf(node.id) > -1) {
@@ -172,7 +190,10 @@ function dependencyObservedChosen(state, action) {
   return nextState;
 }
 
-export default function graphData(state: Object = initialState, action: Action) {
+export default function graphData(
+  state: Object = initialState,
+  action: Action
+) {
   let newState;
   switch (action.type) {
     case CREATE_GRAPH:
@@ -186,31 +207,38 @@ export default function graphData(state: Object = initialState, action: Action) 
       });
     case ADD_NODE:
       newState = addNode(state, action);
-      return Object.assign(newState, {dependencyGraph: Object.assign({}, newState.graph)});
+      return Object.assign(newState, {
+        dependencyGraph: Object.assign({}, newState.graph)
+      });
     case ADD_CONTROL_NODE:
       newState = addControlNode(state);
-      return Object.assign(newState, {dependencyGraph: Object.assign({}, newState.graph)});
+      return Object.assign(newState, {
+        dependencyGraph: Object.assign({}, newState.graph)
+      });
     case SAVE_GRAPH:
       return saveGraph(state, action);
     case SET_DETAILS:
       newState = setDetails(state, action);
-      return Object.assign(newState, {dependencyGraph: Object.assign({}, newState.graph)});
-    case "ALGO_SELECTED" :
+      return Object.assign(newState, {
+        dependencyGraph: Object.assign({}, newState.graph)
+      });
+    case 'ALGO_SELECTED':
       if (action.payload.id === 3) {
-        return Object.assign(state, {eliminationGraph: state.graph});
+        return Object.assign(state, { eliminationGraph: state.graph });
       }
 
       if (action.payload.id === 2) {
-        return Object.assign(state, {moralizeGraph: state.graph});
+        return Object.assign(state, { moralizeGraph: state.graph });
       }
       if (action.payload.id === 1) {
-        return Object.assign(state, {dependencyGraph: state.graph});
+        return Object.assign(state, { dependencyGraph: state.graph });
       }
       return state;
-    case TO_MORALIZED :
+    case TO_MORALIZED:
       if (action.payload.activeUnit === 3) {
         return toMoralizedElimination(state, action);
-      } else if (action.payload.activeUnit === 2) {
+      }
+      if (action.payload.activeUnit === 2) {
         return toMoralizedDependency(state, action);
       }
       return state;
@@ -247,10 +275,10 @@ export default function graphData(state: Object = initialState, action: Action) 
  * @returns {any}
  */
 function deleteNode(state, action) {
-  const {nodeId} = action;
+  const { nodeId } = action;
   const nextState = Object.assign({}, state);
   // get current graph
-  const {graph} = state;
+  const { graph } = state;
 
   const nodes = Array.from(graph.nodes);
   let node;
@@ -270,7 +298,7 @@ function deleteNode(state, action) {
       }
       // need to remove the node from the reachable node list
       const reachableIndex = node.reachableNodes.indexOf(nodeId);
-      if(reachableIndex > -1) {
+      if (reachableIndex > -1) {
         node.reachableNodes.splice(reachableIndex, 1);
       }
     }
@@ -282,7 +310,7 @@ function deleteNode(state, action) {
 
   // set node parents
   let edges = Array.from(graph.edges);
-  edges = edges.filter((value) => value.from !== nodeId && value.to !== nodeId);
+  edges = edges.filter(value => value.from !== nodeId && value.to !== nodeId);
 
   // if(removeEdges.length > 0) {
   //   edges = edges.filter((value, index))
@@ -304,7 +332,7 @@ function deleteNode(state, action) {
       nodes,
       edges
     },
-    "nodes": nodes,
+    nodes: nodes,
     unsaved: true,
     nodesMap
   });
@@ -314,13 +342,23 @@ function deleteNode(state, action) {
 
 function loadNetwork(state, action) {
   const nextState = Object.assign({}, state);
-  const {networkName, networkFile, type, nodes, edges} = action.payload;
-  const loadedNodes = Array.from(nodes, node => getNode(node, null, null, null, null, node.controlNode === true ? '#6aa34e' : '#41e0c9'));
+  const { networkName, networkFile, type, nodes, edges } = action.payload;
+  const loadedNodes = Array.from(nodes, node =>
+    getNode(
+      node,
+      null,
+      null,
+      null,
+      null,
+      node.controlNode === true ? '#6aa34e' : '#41e0c9'
+    )
+  );
 
   // eslint-disable-next-line no-plusplus,promise/always-return
-  const loadedEdges = Array.from(edges, edge => {
-    return {from: edge.nodeArrowHead, to: edge.nodeId2};
-  });
+  const loadedEdges = Array.from(edges, edge => ({
+    from: edge.nodeArrowHead,
+    to: edge.nodeId2
+  }));
 
   const nodesMap = loadedNodes.reduce((map, node) => {
     // eslint-disable-next-line no-param-reassign
@@ -346,16 +384,21 @@ function loadNetwork(state, action) {
 }
 
 function dependencyResponse(state, action) {
-  const {edges: allEdges, observed, rootNode, nodes: responseNodes} = action.payload;
+  const {
+    edges: allEdges,
+    observed,
+    rootNode,
+    nodes: responseNodes
+  } = action.payload;
   const nextState = Object.assign({}, state);
-  const {dependencyGraph} = state;
+  const { dependencyGraph } = state;
 
   // set node parents
   const edges = Array.from(dependencyGraph.edges);
   const dependentNodes = [];
 
-  const newEdges = Array.from(allEdges, (edge) => {
-    const edgeColor = getEdgeColor(edge.category);
+  const newEdges = Array.from(allEdges, edge =>
+    // const edgeColor = getEdgeColor(edge.category);
     // if(edgeColor !== 'black' ) {
     //   if(observed.indexOf(edge.nodeId1) === -1 && rootNode !== edge.nodeId1) {
     //     dependentNodes.push(edge.nodeId1);
@@ -365,11 +408,20 @@ function dependencyResponse(state, action) {
     //     dependentNodes.push(edge.nodeId2);
     //   }
     // }
-    return {from: edge.nodeId1, to: edge.nodeId2, color: {color: edgeColor, highlight: edgeColor}, width: 3};
-  });
+    ({
+      from: edge.nodeId1,
+      to: edge.nodeId2,
+      color: { color: '#848484', highlight: '#848484' },
+      width: 3
+    })
+  );
 
   responseNodes.forEach(node => {
-    if (node.nodeId !== rootNode && observed.indexOf(node.nodeId) === -1 && node.visited === true) {
+    if (
+      node.nodeId !== rootNode &&
+      observed.indexOf(node.nodeId) === -1 &&
+      node.visited === true
+    ) {
       dependentNodes.push(node.nodeId);
     }
   });
@@ -380,6 +432,10 @@ function dependencyResponse(state, action) {
       if (dependentNodes.indexOf(value.id) > -1) {
         const newNode = Object.assign({}, value);
         newNode.color = '#00FF00';
+        nodes.splice(index, 1, newNode);
+      } else if (observed.indexOf(value.id) === -1 && value.id !== rootNode) {
+        const newNode = Object.assign({}, value);
+        newNode.color = '#41e0c9';
         nodes.splice(index, 1, newNode);
       }
     });
@@ -396,13 +452,14 @@ function dependencyResponse(state, action) {
   return nextState;
 }
 
+// eslint-disable-next-line no-unused-vars
 function getEdgeColor(dependencyType) {
   switch (dependencyType) {
-    case "BLOCKED_COLLIDER" :
+    case 'BLOCKED_COLLIDER':
       return '#FF0000';
-    case "BLOCKED_NON_COLLIDER":
+    case 'BLOCKED_NON_COLLIDER':
       return '#0000FF';
-    case "CONNECTED":
+    case 'CONNECTED':
       return '#008000';
     default:
       return 'black';
@@ -416,7 +473,7 @@ function arrayUnique(array) {
     // eslint-disable-next-line no-plusplus
     for (let j = i + 1; j < a.length; ++j) {
       if (a[i] === a[j])
-      // eslint-disable-next-line no-plusplus
+        // eslint-disable-next-line no-plusplus
         a.splice(j--, 1);
     }
   }
@@ -431,7 +488,9 @@ function addReachable(nodeId, nodesMap, parents) {
       nodesMap[parent].reachableNodes.push(nodeId);
       // add the nodes that I can reach
       // eslint-disable-next-line no-param-reassign
-      nodesMap[parent].reachableNodes = arrayUnique(nodesMap[parent].reachableNodes.concat(nodesMap[nodeId].reachableNodes));
+      nodesMap[parent].reachableNodes = arrayUnique(
+        nodesMap[parent].reachableNodes.concat(nodesMap[nodeId].reachableNodes)
+      );
       addReachable(nodeId, nodesMap, nodesMap[parent].parents);
     });
   }
@@ -439,11 +498,12 @@ function addReachable(nodeId, nodesMap, parents) {
 
 function isReachable(nodeId, nodesMap, parents) {
   if (isNotEmptyArr(parents)) {
-    if(parents.indexOf(nodeId) > -1) {
+    if (parents.indexOf(nodeId) > -1) {
       return true;
     }
-    for(let i = 0; i < parents.length; i++) {
-       return isReachable(nodeId, nodesMap, nodesMap[parents[i]].parents);
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < parents.length; i++) {
+      return isReachable(nodeId, nodesMap, nodesMap[parents[i]].parents);
     }
   }
   return false;
@@ -453,30 +513,31 @@ function removeReachable(nodeId, nodesMap, parents) {
   if (isNotEmptyArr(parents)) {
     parents.forEach(parent => {
       const index = nodesMap[parent].reachableNodes.indexOf(nodeId);
-      if(index > -1) {
+      if (index > -1) {
         nodesMap[parent].reachableNodes.splice(index, 1);
       }
 
       // check if node reachable nodes are reached to parent
       // through another path
       nodesMap[nodeId].reachableNodes.forEach(reachableNode => {
-          if(!isReachable(parent, nodesMap, nodesMap[reachableNode].parents)) {
-            const reachableIndex = nodesMap[parent].reachableNodes.indexOf(reachableNode);
-            if(reachableIndex > -1) {
-              nodesMap[parent].reachableNodes.splice(reachableIndex, 1);
-            }
+        if (!isReachable(parent, nodesMap, nodesMap[reachableNode].parents)) {
+          const reachableIndex = nodesMap[parent].reachableNodes.indexOf(
+            reachableNode
+          );
+          if (reachableIndex > -1) {
+            nodesMap[parent].reachableNodes.splice(reachableIndex, 1);
           }
+        }
       });
       removeReachable(nodeId, nodesMap, nodesMap[parent].parents);
     });
   }
 }
 
-
 function setDetails(state, action) {
-  const {nodeId, nodeLabel, nodeDomain, parents} = action.payload;
+  const { nodeId, nodeLabel, nodeDomain, parents } = action.payload;
   const nextState = Object.assign({}, state);
-  const {graph, nodes} = state;
+  const { graph, nodes } = state;
 
   const nextStateNodes = nodes.reduce((map, node) => {
     // eslint-disable-next-line no-param-reassign
@@ -521,7 +582,10 @@ function setDetails(state, action) {
   const removedParents = [];
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < edges.length; i++) {
-    if (edges[i].to === nodeId && (!parents || parents.indexOf(edges[i].from) === -1)) {
+    if (
+      edges[i].to === nodeId &&
+      (!parents || parents.indexOf(edges[i].from) === -1)
+    ) {
       removedIndexes.push(i);
       removedParents.push(edges[i].from);
     }
@@ -535,7 +599,7 @@ function setDetails(state, action) {
     parents.forEach(parent => {
       if (existingEdges.indexOf(`${parent}_${nodeId}`) === -1) {
         // add edge only if not exist
-        edges = edges.concat({from: parent, to: nodeId});
+        edges = edges.concat({ from: parent, to: nodeId });
       }
     });
   }
@@ -561,36 +625,47 @@ function setDetails(state, action) {
 }
 
 function saveGraph(state, action) {
-  let name = action.fileName || state.networkName;
-  const {networkName} = state;
-  const bayesianNetwork = toBayesianNetwork(state.graph, state.nodes, state.nodesMap, networkName, state.networkType, state.layersCount);
+  const { networkName: actionNetworkName } = action.payload;
+  let filePath = action.payload.fileName || state.networkName;
+  const { networkName } = state;
+  const finalName = actionNetworkName || networkName;
+  const bayesianNetwork = toBayesianNetwork(
+    state.graph,
+    state.nodes,
+    state.nodesMap,
+    finalName,
+    state.networkType,
+    state.layersCount
+  );
 
-  if (!name.endsWith(".json")) {
-    name += ".json";
+  if (!filePath.endsWith('.json')) {
+    filePath += '.json';
   }
 
   const bayesian = {
-    "filePath": name,
-    "network": bayesianNetwork
+    filePath: filePath,
+    network: bayesianNetwork
   };
 
-  axios.post('http://localhost:8080/bayesian/network/create', bayesian)
+  axios
+    .post('http://localhost:8080/bayesian/network/create', bayesian)
     .then(response => {
       if (response.status === 200) {
-        alert(`Saved Successfully as ${name}`);
+        alert(`Saved Successfully as ${filePath}`);
       } else {
-        alert("Failed to save network");
+        alert('Failed to save network');
       }
       return true;
-    }).catch(reason => console.log(reason));
+    })
+    .catch(reason => console.log(reason));
 
   const newState = Object.assign({}, state);
   return Object.assign(newState, {
     networkFile: bayesian.filePath,
+    networkName: finalName,
     unsaved: false
   });
 }
-
 
 function createGraph(state, action) {
   const nextState = Object.assign({}, state);
@@ -612,7 +687,14 @@ function createGraph(state, action) {
   if (action.networkType === 'ITERATIVE') {
     // eslint-disable-next-line no-plusplus
     for (let i = 1; i < count; i++) {
-      const anotherLevelNode = getNode(null, i + count, `Node${i}(i-1)`, false, 2, '#175ed1');
+      const anotherLevelNode = getNode(
+        null,
+        i + count,
+        `Node${i}(i-1)`,
+        false,
+        2,
+        '#175ed1'
+      );
       networkNodes.push(anotherLevelNode);
     }
 
@@ -625,11 +707,10 @@ function createGraph(state, action) {
   }
 
   const nodesMapping = {};
-  nodes.map((node) => {
+  nodes.map(node => {
     nodesMapping[node.id] = node;
     return node;
   });
-
 
   Object.assign(nextState, {
     graph: {
@@ -658,10 +739,9 @@ function createGraph(state, action) {
 
 function addNode(state) {
   const nextState = Object.assign({}, state);
-  const {graph} = state;
-  let {nodes, nodesMap} = state;
+  const { graph, nodesMap } = state;
+  let { nodes } = state;
   let graphNodes = graph.nodes;
-
 
   // find next available id
   let id = 1;
@@ -683,9 +763,10 @@ function addNode(state) {
   nodesMap[id] = node;
 
   if (state.networkType === 2) {
-    graphNodes.push(getNode(null, id + nodes, `Node${id}(i-1)`, false, 2, '#175ed1'));
+    graphNodes.push(
+      getNode(null, id + nodes, `Node${id}(i-1)`, false, 2, '#175ed1')
+    );
   }
-
 
   Object.assign(nextState, {
     graph: {
@@ -702,18 +783,21 @@ function addNode(state) {
 
 function addControlNode(state) {
   const nextState = Object.assign({}, state);
-  const {graph, nodes, nodesMap} = state;
+  const { graph, nodes, nodesMap } = state;
   const graphNodes = graph.nodes;
 
   if (nodes.length === 0) {
-    alert("Cannot add control node to an empty network");
+    alert('Cannot add control node to an empty network');
     return;
   }
 
   let id = 'c0';
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < nodes.length; i++) {
-    if (nodes[i].control === true && id < parseInt(nodes[i].id.substring(1), 10)) {
+    if (
+      nodes[i].control === true &&
+      id < parseInt(nodes[i].id.substring(1), 10)
+    ) {
       // eslint-disable-next-line prefer-destructuring
       id = nodes[i].id;
     }
@@ -725,7 +809,14 @@ function addControlNode(state) {
 
   const newNodeId = `c${intId}`;
 
-  const node = getNode(null, newNodeId, `Control Node${intId}`, true, 1, '#6aa34e');
+  const node = getNode(
+    null,
+    newNodeId,
+    `Control Node${intId}`,
+    true,
+    1,
+    '#6aa34e'
+  );
   // const node = {id: newNodeId, label: `Control Node${intId}`, color: '#6aa34e', control: true};
   nodesMap[newNodeId] = node;
 
@@ -746,15 +837,20 @@ function getMoralizeData(action, state) {
   const moralizedEdges = action.payload.newEdges;
   const nextState = Object.assign({}, state);
 
-  const newEdges = Array.from(moralizedEdges, (edge) => {
-    const tuple = edge.split("_");
-    return {from: tuple[0], to: tuple[1], "arrows": '', color: tuple.length > 2 ? 'red' : '#848484'};
+  const newEdges = Array.from(moralizedEdges, edge => {
+    const tuple = edge.split('_');
+    return {
+      from: tuple[0],
+      to: tuple[1],
+      arrows: '',
+      color: tuple.length > 2 ? 'red' : '#848484'
+    };
   });
-  return {nextState, newEdges};
+  return { nextState, newEdges };
 }
 
 function toMoralizedDependency(state, action) {
-  const {nextState, newEdges} = getMoralizeData(action, state);
+  const { nextState, newEdges } = getMoralizeData(action, state);
 
   Object.assign(nextState, {
     moralizeGraph: {
@@ -767,7 +863,7 @@ function toMoralizedDependency(state, action) {
 }
 
 function toMoralizedElimination(state, action) {
-  const {nextState, newEdges} = getMoralizeData(action, state);
+  const { nextState, newEdges } = getMoralizeData(action, state);
 
   Object.assign(nextState, {
     eliminationGraph: {
@@ -783,7 +879,7 @@ function eliminateNode(state, action) {
   const graph = action.payload.nodeEdge;
 
   const nextState = Object.assign({}, state);
-  const {eliminationGraph} = state;
+  const { eliminationGraph } = state;
   const map = {};
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < eliminationGraph.nodes.length; i++) {
@@ -792,15 +888,17 @@ function eliminateNode(state, action) {
 
   const newEdges = [];
   const newNodes = [];
-  for (let [key, value] of Object.entries(graph)) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const [key, value] of Object.entries(graph)) {
     newNodes.push(map[key]);
-    value.forEach(edge => newEdges.push({from: edge.nodeId1, to: edge.nodeId2, "arrows": ''}))
+    value.forEach(edge =>
+      newEdges.push({ from: edge.nodeId1, to: edge.nodeId2, arrows: '' })
+    );
   }
 
   // Object.values(map).forEach(index => {
   //   eliminationGraph.nodes.splice(index, 1);
   // });
-
 
   Object.assign(nextState, {
     eliminationGraph: {
@@ -810,5 +908,4 @@ function eliminateNode(state, action) {
   });
 
   return nextState;
-
 }
